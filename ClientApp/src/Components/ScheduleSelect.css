@@ -1,0 +1,17 @@
+.schedule{
+    display: flex;
+    flex-direction: column;
+}
+
+.schedule > div{
+    margin: 5px 5px;
+}
+
+
+.monthPicker{
+
+}
+
+.dayPicker{
+
+}

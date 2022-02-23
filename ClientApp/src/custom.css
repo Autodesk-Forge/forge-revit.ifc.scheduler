@@ -1,0 +1,178 @@
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+code {
+  color: #E01A76;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+
+
+h1{
+  line-height: 1em;
+}
+
+header{
+  display: flex;
+  align-items: center;
+}
+
+header.top{
+  background-color: #1b6ec2;
+  color: white;
+  padding: 0px 15px;
+}
+
+header ul{
+  flex: 1;
+  display: flex;
+  list-style: none;
+}
+header ul li{
+  margin-left: 20px;
+}
+header.top a{
+  margin-left: 20px;
+  color: white;
+  text-decoration: none;
+}
+header.top a:hover{
+  margin-left: 20px;
+  color: #c7c7c7;
+}
+
+main{
+  display: flex;
+  flex: 1;
+  overflow-y:hidden;
+}
+
+#projectsList{
+  width: 15rem;
+  background-color: darkred;
+  border-right: solid 2px #333;
+  padding: 5px;
+}
+
+#scheduleList{
+  width: 15rem;
+  background-color: darkcyan;
+  border-right: solid 2px #333;
+  padding: 5px;
+}
+
+#projectPanel{
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 5px;
+}
+
+#projectPanel section {
+  display: flex;
+  flex: 1;
+  overflow:hidden;
+}
+
+#historyPanel{
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y:hidden;
+  height: 100%;
+}
+
+#historyPanel .section {
+  /*box-sizing: border-box;*/
+  /*flex: 1;*/
+  /*height: 100%;*/
+  /*overflow-y:hidden;*/
+}
+
+#schedulePanel{
+  flex: 3;
+  padding: 10px;
+}
+
+#projectFoldersAndFiles{
+  flex: 5;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow:hidden;
+  border: solid 1px #CCC;
+  margin: 10px;
+}
+
+.buttonTray{
+  display: flex;
+  margin-top: 3rem;
+}
+
+#settingsPage{
+  max-width: 1600px;
+  width: 90vw;
+  display: flex;
+  margin: auto;
+  height: 100%;
+}
+
+#settingsPage section{
+  padding: 20px;
+  flex: 1
+}
+
+.flexFiller{
+  flex: auto;
+}
+
+.deleteButton{
+  background-color: red;
+  border-color: darkred;
+}
+
+.deleteButton:hover{
+  background-color: darkred;
+  border-color: darkred;
+}
+
+.hiddenRow{
+  color: #a2a2a2;
+}
+
+.languageButton{
+  background: none;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 5px;
+}
+
+
+.workItemNoteContainer{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
+  grid-gap: 10px;
+  padding: 5px 25px;
+  /*width: 100%;*/
+}
+
+.workItemNote{
+  display: flex;
+}
+.workItemNote .label{
+  width: 12rem;
+  font-weight: bold;
+}
+
+
+code {
+  color: #9e007e;
+}
