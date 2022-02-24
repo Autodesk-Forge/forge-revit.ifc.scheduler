@@ -105,11 +105,11 @@ namespace RevitToIfcScheduler.Models
         {
             if (string.IsNullOrWhiteSpace(Notes))
             {
-                Notes = $"[{DateTime.UtcNow.ToShortTimeString()}] {logLine}";
+                Notes = $"[{DateTime.UtcNow.ToShortTimeString()} UTC] {logLine}";
             }
             else
             {
-                Notes += $"\n[{DateTime.UtcNow.ToShortTimeString()}] {logLine}";
+                Notes += $"\n[{DateTime.UtcNow.ToShortTimeString()} UTC] {logLine}";
             }
         }
         
