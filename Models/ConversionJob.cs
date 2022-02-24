@@ -171,9 +171,10 @@ namespace RevitToIfcScheduler.Models
                 conversionJob.AddLog($"Created Object in Storage Location: {objectId}");
             
                 //Remove unsafe characters from the name
-                var suffix = " - " + (conversionJob.JobSchedule?.Name ?? "ad-hoc")
-                             .Replace("/", "")
-                             .Replace(@"\", "");
+                var suffix = string.Empty;
+                // var suffix = " - " + (conversionJob.JobSchedule?.Name ?? "ad-hoc")
+                //              .Replace("/", "")
+                //              .Replace(@"\", "");
                 
                 //Look for IFC file with same name as revit file in the same folder
                 var existingVersion = await Forge.GetExistingVersion(conversionJob.ProjectId, conversionJob.FolderId,

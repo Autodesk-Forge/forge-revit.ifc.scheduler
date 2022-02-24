@@ -21,7 +21,7 @@ using File = RevitToIfcScheduler.Models.File;
 
 namespace RevitToIfcScheduler.Utilities
 {
-    
+
     public static class Forge
     {
         public static async Task<List<Folder>> GetTopFolders(string hubId, string projectId, string token)
@@ -54,13 +54,13 @@ namespace RevitToIfcScheduler.Utilities
                 throw;
             }
         }
-        
+
         public static async Task<List<Base>> GetFolderContents(string projectId, string folderId, string token)
         {
             try
             {
                 var children = new List<Base>();
-                
+
                 var url = $"{AppConfig.ForgeBaseUrl}/data/v1/projects/{projectId}/folders/{folderId}/contents";
                 while (true)
                 {
@@ -79,8 +79,9 @@ namespace RevitToIfcScheduler.Utilities
                             });
                         }
                     }
-                        
-                    if(data.included != null){
+
+                    if (data.included != null)
+                    {
                         foreach (dynamic item in data.included)
                         {
                             if (item.attributes.fileType == "rvt" || item.attributes.fileType == "ifc")
@@ -120,11 +121,11 @@ namespace RevitToIfcScheduler.Utilities
         {
             var files = new HashSet<File>();
             var fetchedFolderIds = new List<string>();
-            
+
             while (folderIds.Count > 0)
             {
                 var folderUrn = folderIds.PopAt(0);
-                if(!fetchedFolderIds.Contains(folderUrn))
+                if (!fetchedFolderIds.Contains(folderUrn))
                 {
                     var token = await tokenGetter.GetToken();
                     var folderContents = await GetFolderContents(projectId, folderUrn, token);
@@ -134,7 +135,8 @@ namespace RevitToIfcScheduler.Utilities
                         if (item is File file && file.FileType == "rvt")
                         {
                             files.Add(file);
-                        } else if (item is Folder)
+                        }
+                        else if (item is Folder)
                         {
                             folderIds.Add(item.Id);
                         }
@@ -145,12 +147,12 @@ namespace RevitToIfcScheduler.Utilities
 
             return files.ToList();
         }
-        
+
         private static bool IsValidTopFolder(string name)
         {
             Guid guidResult;
             if (name.Contains("checklist_") || name.Contains("submittals-attachments") || name.Contains("Photos") ||
-                name.Contains("ProjectTb") || name.Contains("dailylog_") || name.Contains("issue_") 
+                name.Contains("ProjectTb") || name.Contains("dailylog_") || name.Contains("issue_")
                 || name.Contains("issues_") || name.Contains("COST Root Folder") || Guid.TryParse(name, out guidResult))
             {
                 return false;
@@ -167,7 +169,7 @@ namespace RevitToIfcScheduler.Utilities
             {
                 var token = await new TwoLeggedTokenGetter().GetToken();
                 var url = $"{AppConfig.ForgeBaseUrl}/oss/v2/buckets/{bucketKey}/details";
-                
+
                 var response = await url
                     .WithOAuthBearerToken(token)
                     .AllowHttpStatus("4xx")
@@ -176,7 +178,8 @@ namespace RevitToIfcScheduler.Utilities
                 if (response.StatusCode == StatusCodes.Status200OK)
                 {
                     Log.Information("Bucket Exists");
-                } else if (response.StatusCode == StatusCodes.Status404NotFound)
+                }
+                else if (response.StatusCode == StatusCodes.Status404NotFound)
                 {
                     Log.Information("Bucket Does not Exist");
                     await CreateTransientBucket(bucketKey, token);
@@ -193,7 +196,7 @@ namespace RevitToIfcScheduler.Utilities
                 throw;
             }
         }
-        
+
         public static async Task CreateTransientBucket(string bucketKey, string token)
         {
             try
@@ -204,7 +207,7 @@ namespace RevitToIfcScheduler.Utilities
                     bucketKey,
                     policyKey = "transient"
                 };
-                
+
                 await url
                     .WithOAuthBearerToken(token)
                     .PostJsonAsync(body);
@@ -243,12 +246,12 @@ namespace RevitToIfcScheduler.Utilities
                 //Move file from WIPDM bucket (or other) into Transient bucket
                 conversionJob.AddLog("Moving file to OSS");
                 var objectName = conversionJob.Id.ToString() + (conversionJob.IsCompositeDesign ? ".zip" : ".rvt");
-                
+
                 var token = await new TwoLeggedTokenGetter().GetToken();
                 var sourceStorageLocation =
                     await GetItemStorageLocation(conversionJob.ProjectId, conversionJob.ItemId, token);
                 var targetStorageLocation = $"{AppConfig.ForgeBaseUrl}/oss/v2/buckets/{AppConfig.BucketKey}/objects/{objectName}";
-                
+
                 //Return objectID
                 var objectId = await MoveFileFromDmToOss(sourceStorageLocation, targetStorageLocation, token, conversionJob, revitIfcContext);
 
@@ -256,11 +259,11 @@ namespace RevitToIfcScheduler.Utilities
 
                 return objectId;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 Log.Error(exception.Message);
                 Log.Error(exception.StackTrace);
-                
+
                 conversionJob.AddLog($"FAILED moving file to OSS: {exception.Message}");
                 revitIfcContext.ConversionJobs.Update(conversionJob);
                 await revitIfcContext.SaveChangesAsync();
@@ -274,13 +277,13 @@ namespace RevitToIfcScheduler.Utilities
             {
                 ServiceProvider provider = (AppConfig.Services as ServiceCollection).BuildServiceProvider();
                 Context.RevitIfcContext revitIfcContext = provider.GetService<Context.RevitIfcContext>();
-                
+
                 var schedule = await revitIfcContext.Schedules.FindAsync(scheduleId);
                 var conversionJob = new ConversionJob()
                 {
                     Id = Guid.NewGuid(),
                     HubId = hubId,
-                    ProjectId = projectId, 
+                    ProjectId = projectId,
                     FileUrn = fileUrn,
                     FileName = name,
                     FolderId = folderId,
@@ -293,21 +296,21 @@ namespace RevitToIfcScheduler.Utilities
                     IsCompositeDesign = isCompositeDesign,
                     Status = ConversionJobStatus.Created
                 };
-                
+
                 //Look for identical past jobs -- if already completed, don't repeat.
                 var pastSuccess = await revitIfcContext.ConversionJobs.Where(x =>
                         x.FileUrn == conversionJob.FileUrn &&
                         x.IfcSettingsSetName == conversionJob.IfcSettingsSetName &&
                         x.Status == ConversionJobStatus.Success)
                     .FirstOrDefaultAsync();
-                
+
                 conversionJob.AddLog("Created Job");
                 revitIfcContext.ConversionJobs.Add(conversionJob);
                 await revitIfcContext.SaveChangesAsync();
 
                 if (pastSuccess != null)
                 {
-                    conversionJob.Status = ConversionJobStatus.Unchanged;   
+                    conversionJob.Status = ConversionJobStatus.Unchanged;
                     conversionJob.AddLog($"File has already been created on {pastSuccess.JobCreated}");
                     conversionJob.AddLog(pastSuccess.Id.ToString());
                     revitIfcContext.ConversionJobs.Update(conversionJob);
@@ -315,7 +318,7 @@ namespace RevitToIfcScheduler.Utilities
                 }
                 else
                 {
-                    BackgroundJob.Enqueue(() => BeginConversionJob(conversionJob.Id)); 
+                    BackgroundJob.Enqueue(() => BeginConversionJob(conversionJob.Id));
                 }
             }
             catch (Exception exception)
@@ -330,7 +333,7 @@ namespace RevitToIfcScheduler.Utilities
         {
             ServiceProvider provider = (AppConfig.Services as ServiceCollection).BuildServiceProvider();
             Context.RevitIfcContext revitIfcContext = provider.GetService<Context.RevitIfcContext>();
-            
+
             try
             {
 
@@ -390,7 +393,7 @@ namespace RevitToIfcScheduler.Utilities
                     .PostJsonAsync(body);
 
                 var jsonResponse = await result.GetJsonAsync<dynamic>();
-                
+
                 if (result.StatusCode == StatusCodes.Status406NotAcceptable && jsonResponse.diagnostic == "This URN is from a shallow copy, not acceptable for any other modification.")
                 {
                     conversionJob.AddLog("This URN is from a shallow copy, not acceptable for any other modification.");
@@ -398,12 +401,12 @@ namespace RevitToIfcScheduler.Utilities
                     if (AppConfig.IncludeShallowCopies)
                     {
                         conversionJob.AddLog("Creating Deep Copy of file in OSS");
-                        
+
                         //Move file to OSS
                         conversionJob.InputStorageLocation = await MoveFileToOss(conversionJob, revitIfcContext);
                         revitIfcContext.ConversionJobs.Update(conversionJob);
                         await revitIfcContext.SaveChangesAsync();
-                        
+
                         //Retry processing
                         BackgroundJob.Enqueue(() => BeginConversionJob(conversionJobId));
                     }
@@ -411,7 +414,9 @@ namespace RevitToIfcScheduler.Utilities
                     {
                         conversionJob.Status = ConversionJobStatus.ShallowCopy;
                     }
-                } else {
+                }
+                else
+                {
                     conversionJob.Status = result.StatusCode == StatusCodes.Status201Created
                         ? ConversionJobStatus.Unchanged
                         : ConversionJobStatus.Processing;
@@ -449,13 +454,13 @@ namespace RevitToIfcScheduler.Utilities
                 conversionJob.Status = ConversionJobStatus.Failed;
                 conversionJob.JobFinished = DateTime.UtcNow;
                 revitIfcContext.ConversionJobs.Update(conversionJob);
-                
+
                 Log.Error(exception.Message);
                 Log.Error(exception.StackTrace);
                 throw;
             }
         }
-        
+
         public static async Task<dynamic> GetModelDerivativeManifest(string urn, string token, string region)
         {
             var regionSpecifier = region == "EU" ? "/regions/eu" : "";
@@ -469,7 +474,7 @@ namespace RevitToIfcScheduler.Utilities
 
             return response;
         }
-        
+
         /* Downloading File */
 
         public static async Task<string> GetFileParentFolderUrn(string projectId, string itemId, string token)
@@ -490,18 +495,19 @@ namespace RevitToIfcScheduler.Utilities
                 throw new Exception("Could not get Parent Folder URN");
             }
         }
-        
+
         public static async Task<string> GetIfcDerivativeUrn(string fileUrn, string token, string region)
         {
-            try{
+            try
+            {
                 var regionSpecifier = region == "EU" ? "/regions/eu" : "";
                 var urn = Base64Encoder.Encode(fileUrn).Replace('/', '_');
                 var url = $"{AppConfig.ForgeBaseUrl}/modelderivative/v2{regionSpecifier}/designdata/{urn}/manifest";
-            
+
                 var data = await url
                     .WithOAuthBearerToken(token)
                     .GetJsonAsync();
-            
+
                 foreach (dynamic derivative in data.derivatives)
                 {
                     if (derivative.outputType == "ifc")
@@ -510,7 +516,7 @@ namespace RevitToIfcScheduler.Utilities
                         return derivative.children[0].urn;
                     }
                 }
-                
+
                 foreach (dynamic message in data.messages)
                 {
                     if (message.code == "Revit-UnsupportedVersionOlder")
@@ -526,7 +532,8 @@ namespace RevitToIfcScheduler.Utilities
 
                 throw new Exception();
             }
-            catch(Exception exception){
+            catch (Exception exception)
+            {
                 Log.Error($"Could not get Download URL: {exception.Message}");
                 throw new Exception("Could not get Download Url");
             }
@@ -540,17 +547,17 @@ namespace RevitToIfcScheduler.Utilities
                 var objectName = storageLocation.Split('/').Last();
                 var urlEncodedDerivative = UrlEncoder.Default.Encode(derivativeUrn);
                 var base64EncodedFileUrn = !string.IsNullOrWhiteSpace(conversionJob.EncodedInputStorageLocation) ? conversionJob.EncodedInputStorageLocation : conversionJob.EncodedFileUrn;
-                
+
                 var downloadUrl = $"{AppConfig.ForgeBaseUrl}/modelderivative/v2{regionSpecifier}/designdata/{base64EncodedFileUrn}/manifest/{urlEncodedDerivative}";
                 var uploadStreamUrl = $"{AppConfig.ForgeBaseUrl}/oss/v2/buckets/wip.dm.prod/objects/{objectName}";
 
-                
+
                 //Get the length of the object
                 using IFlurlResponse headResponse = await downloadUrl
                     .WithOAuthBearerToken(token)
                     .HeadAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
 
-                int contentLength = (int) int.Parse(headResponse.Headers.FirstOrDefault(x=>x.Name == "Content-Length").Value);
+                int contentLength = (int)int.Parse(headResponse.Headers.FirstOrDefault(x => x.Name == "Content-Length").Value);
 
                 //If less than 20MB, upload normally
                 if (contentLength < 20_000_000)
@@ -565,10 +572,10 @@ namespace RevitToIfcScheduler.Utilities
                         .WithOAuthBearerToken(token)
                         .PutAsync(content);
 
-                        Log.Information("Successful Upload");
-                        var data = await response.GetJsonAsync();
+                    Log.Information("Successful Upload");
+                    var data = await response.GetJsonAsync();
 
-                        return data.objectId;
+                    return data.objectId;
                 }
                 else
                 {
@@ -580,14 +587,14 @@ namespace RevitToIfcScheduler.Utilities
                     {
                         string range = $"bytes={i}-{Math.Min(contentLength - 1, i + 5_000_000 - 1)}";
                         string uploadRange = $"bytes {i}-{Math.Min(contentLength - 1, i + 5_000_000 - 1)}/{contentLength}";
-                        
+
                         using Stream downloadStream = await downloadUrl
                             .WithOAuthBearerToken(token)
                             .WithHeader("Range", range)
                             .GetStreamAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
 
                         var content = new StreamContent(downloadStream);
-                        
+
                         var response = await uploadStreamUrl
                             .AppendPathSegment("resumable")
                             .WithOAuthBearerToken(token)
@@ -595,12 +602,13 @@ namespace RevitToIfcScheduler.Utilities
                             .WithHeader("Session-Id", sessionId)
                             .PutAsync(content);
 
-                            if(response.StatusCode == StatusCodes.Status200OK){
-                                var jsonResponse = response.GetStringAsync().Result;
-                                dynamic data = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                        if (response.StatusCode == StatusCodes.Status200OK)
+                        {
+                            var jsonResponse = response.GetStringAsync().Result;
+                            dynamic data = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
 
-                                objectId = data.objectId;
-                            }
+                            objectId = data.objectId;
+                        }
                     }
 
                     return objectId;
@@ -613,7 +621,7 @@ namespace RevitToIfcScheduler.Utilities
                 throw;
             }
         }
-        
+
         public static async Task<string> MoveFileFromDmToOss(string sourceStorageLocation, string targetStorageLocation, string token, ConversionJob conversionJob, Context.RevitIfcContext revitIfcContext)
         {
             try
@@ -621,23 +629,23 @@ namespace RevitToIfcScheduler.Utilities
                 var downloadUrl = sourceStorageLocation;
                 var uploadStreamUrl = targetStorageLocation;
 
-                
+
                 //Get the length of the object
                 var headResponse = await downloadUrl
                     .WithOAuthBearerToken(token)
                     .HeadAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
 
-                int contentLength = (int) int.Parse(headResponse.Headers.FirstOrDefault(x=>x.Name == "Content-Length").Value);
+                int contentLength = (int)int.Parse(headResponse.Headers.FirstOrDefault(x => x.Name == "Content-Length").Value);
                 // int contentLength = (int) headResponse.Content.Headers.ContentLength;
 
-                conversionJob.AddLog($"Moving file from DM to OSS. Content Length: {Math.Round((double) contentLength / 1_000_000.0)}MB");
+                conversionJob.AddLog($"Moving file from DM to OSS. Content Length: {Math.Round((double)contentLength / 1_000_000.0)}MB");
                 revitIfcContext.ConversionJobs.Update(conversionJob);
                 await revitIfcContext.SaveChangesAsync();
-                
+
                 //If less than 20MB, upload normally
                 if (contentLength < 20_000_000)
                 {
-                    using Stream downloadStream  = await downloadUrl
+                    using Stream downloadStream = await downloadUrl
                         .WithOAuthBearerToken(token)
                         .GetStreamAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
 
@@ -647,14 +655,14 @@ namespace RevitToIfcScheduler.Utilities
                         .WithOAuthBearerToken(token)
                         .PutAsync(content);
 
-                        var data = await response.GetJsonAsync();
+                    var data = await response.GetJsonAsync();
 
-                        Log.Information("File fully uploaded to OSS");
-                        conversionJob.AddLog($"File fully uploaded to OSS");
-                        revitIfcContext.ConversionJobs.Update(conversionJob);
-                        await revitIfcContext.SaveChangesAsync();
-                        
-                        return data.objectId;
+                    Log.Information("File fully uploaded to OSS");
+                    conversionJob.AddLog($"File fully uploaded to OSS");
+                    revitIfcContext.ConversionJobs.Update(conversionJob);
+                    await revitIfcContext.SaveChangesAsync();
+
+                    return data.objectId;
                 }
                 else
                 {
@@ -669,14 +677,14 @@ namespace RevitToIfcScheduler.Utilities
                         int upperRange = Math.Min(contentLength - 1, i + 5_000_000 - 1);
                         string range = $"bytes={lowerRange}-{upperRange}";
                         string uploadRange = $"bytes {lowerRange}-{upperRange}/{contentLength}";
-                        
-                        using Stream downloadStream  = await downloadUrl
+
+                        using Stream downloadStream = await downloadUrl
                             .WithOAuthBearerToken(token)
                             .WithHeader("Range", range)
                             .GetStreamAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
 
                         var content = new StreamContent(downloadStream);
-                        
+
                         var response = await uploadStreamUrl
                             .AppendPathSegment("resumable")
                             .WithOAuthBearerToken(token)
@@ -684,23 +692,24 @@ namespace RevitToIfcScheduler.Utilities
                             .WithHeader("Session-Id", sessionId)
                             .PutAsync(content);
 
-                            if(response.StatusCode == StatusCodes.Status200OK){
-                                dynamic data = await response.GetJsonAsync();
+                        if (response.StatusCode == StatusCodes.Status200OK)
+                        {
+                            dynamic data = await response.GetJsonAsync();
 
-                                objectId = data.objectId;
-                            }
+                            objectId = data.objectId;
+                        }
 
-                            Log.Information($"Uploaded file chunk to OSS: {Math.Round(100.0 * ((double) upperRange / (double) contentLength))}%");
-                            
-                            conversionJob.AddLog($"Uploaded file chunk to OSS: {Math.Round(100.0 * ((double) upperRange / (double) contentLength))}%");
-                            revitIfcContext.ConversionJobs.Update(conversionJob);
-                            await revitIfcContext.SaveChangesAsync();
+                        Log.Information($"Uploaded file chunk to OSS: {Math.Round(100.0 * ((double)upperRange / (double)contentLength))}%");
+
+                        conversionJob.AddLog($"Uploaded file chunk to OSS: {Math.Round(100.0 * ((double)upperRange / (double)contentLength))}%");
+                        revitIfcContext.ConversionJobs.Update(conversionJob);
+                        await revitIfcContext.SaveChangesAsync();
                     }
 
                     conversionJob.AddLog($"File fully uploaded to OSS");
                     revitIfcContext.ConversionJobs.Update(conversionJob);
                     await revitIfcContext.SaveChangesAsync();
-                    
+
                     return objectId;
                 }
             }
@@ -710,7 +719,7 @@ namespace RevitToIfcScheduler.Utilities
                 conversionJob.Status = ConversionJobStatus.Failed;
                 revitIfcContext.ConversionJobs.Update(conversionJob);
                 await revitIfcContext.SaveChangesAsync();
-                
+
                 Log.Error(exception.Message);
                 Log.Error(exception.StackTrace);
                 throw;
@@ -719,17 +728,18 @@ namespace RevitToIfcScheduler.Utilities
 
         /* Uploading Code */
 
-        public static async Task<string> CreateStorageLocation(string projectId, string folderId, string derivativeUrn, 
+        public static async Task<string> CreateStorageLocation(string projectId, string folderId, string derivativeUrn,
             string token)
         {
             var fileName = derivativeUrn.Split('/').Last();
-                
+
             var url = $"{AppConfig.ForgeBaseUrl}/data/v1/projects/{projectId}/storage";
 
             var body =
                 new
                 {
-                    jsonapi =  new {
+                    jsonapi = new
+                    {
                         version = "1.0"
                     },
                     data = new
@@ -754,22 +764,26 @@ namespace RevitToIfcScheduler.Utilities
                 };
 
             HttpContent httpContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
-                    
+
             var result = await url
                 .WithOAuthBearerToken(token)
                 .PostAsync(httpContent);
 
-                var data = await result.GetJsonAsync<dynamic>();
+            var data = await result.GetJsonAsync<dynamic>();
 
-                return data.data.id;
+            return data.data.id;
         }
 
-        public static async Task<string> GetExistingVersion(string projectId, string folderId, string fileName, 
+        public static async Task<string> GetExistingVersion(string projectId, string folderId, string fileName,
             string suffix, string token)
         {
             try
             {
-                var name = fileName.Split('.').First() + suffix + ".ifc";
+                var name = fileName.Split('.').First();
+                if (string.IsNullOrWhiteSpace(suffix))
+                    name = name + ".ifc";
+                else
+                    name = name + suffix + ".ifc";
 
                 var folderContents = await GetFolderContents(projectId, folderId, token);
 
@@ -791,13 +805,17 @@ namespace RevitToIfcScheduler.Utilities
             }
         }
 
-        public static async Task CreateFirstVersion(string projectId, string folderId, string objectId, 
+        public static async Task CreateFirstVersion(string projectId, string folderId, string objectId,
             string fileName, string suffix, string token)
         {
             try
             {
-                var name = fileName.Split('.').First() + suffix + ".ifc";
-                
+                var name = fileName.Split('.').First();
+                if (string.IsNullOrWhiteSpace(suffix))
+                    name = name + ".ifc";
+                else
+                    name = name + suffix + ".ifc";
+
                 var url = $"{AppConfig.ForgeBaseUrl}/data/v1/projects/{projectId}/items";
 
                 var body = new
@@ -862,7 +880,7 @@ namespace RevitToIfcScheduler.Utilities
                                         type = "objects",
                                         id = objectId
                                     }
-                                } 
+                                }
                             }
                         }
                     }
@@ -885,9 +903,13 @@ namespace RevitToIfcScheduler.Utilities
             string fileName, string suffix, string token)
         {
             try
-            {                
-                var name = fileName.Split('.').First() + suffix + ".ifc";
-                
+            {
+                var name = fileName.Split('.').First();
+                if (string.IsNullOrWhiteSpace(suffix))
+                    name = name + ".ifc";
+                else
+                    name = name + suffix + ".ifc";
+
                 var url = $"{AppConfig.ForgeBaseUrl}/data/v1/projects/{projectId}/versions";
 
                 var body = new
@@ -934,8 +956,8 @@ namespace RevitToIfcScheduler.Utilities
                 var result = await url
                     .WithOAuthBearerToken(token)
                     .PostAsync(httpContent);
-                
-                    Log.Information("Success");
+
+                Log.Information("Success");
             }
             catch (Exception exception)
             {
@@ -945,7 +967,7 @@ namespace RevitToIfcScheduler.Utilities
 
         }
     }
-    
+
     static class ListExtension
     {
         public static T PopAt<T>(this List<T> list, int index)
