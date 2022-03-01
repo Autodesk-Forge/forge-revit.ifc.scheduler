@@ -7,7 +7,8 @@ export interface ITreeBase {
     name: string;
     type?: string;
     project: Project;
-    parent?: Folder
+    parent?: Folder;
+    webView?: string;
 }
 
 export abstract class TreeBase{
@@ -17,12 +18,14 @@ export abstract class TreeBase{
     public get label(){return this.name};
     public readonly project: Project;
     public readonly parent?: Folder;
+    public readonly webView?: string;
 
-    constructor({id, name, project, parent}: ITreeBase) {
+    constructor({id, name, project, parent, webView}: ITreeBase) {
         this.id = id;
         this.name = name;
         this.project = project;
         this.parent = parent;
+        this.webView = webView;
     }
 
     public abstract getTree(): any;

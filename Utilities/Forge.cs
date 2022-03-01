@@ -42,7 +42,8 @@ namespace RevitToIfcScheduler.Utilities
                         folders.Add(new Folder()
                         {
                             Id = folder.id,
-                            Name = folder.attributes.name
+                            Name = folder.attributes.name,
+                            WebView = folder.links.webView.href
                         });
                     }
                 }
@@ -75,7 +76,8 @@ namespace RevitToIfcScheduler.Utilities
                             children.Add(new Folder()
                             {
                                 Id = item.id,
-                                Name = item.attributes.name
+                                Name = item.attributes.name,
+                                WebView = item.links.webView.href
                             });
                         }
                     }
@@ -93,7 +95,8 @@ namespace RevitToIfcScheduler.Utilities
                                     ItemId = item.relationships.item.data.id,
                                     FileType = item.attributes.fileType,
                                     FolderId = folderId,
-                                    IsCompositeDesign = item.attributes.extension.data.isCompositeDesign ?? false
+                                    IsCompositeDesign = item.attributes.extension.data.isCompositeDesign ?? false,
+                                    WebView = item.links.webView.href
                                 });
                             }
                         }

@@ -32,6 +32,13 @@ export const SingleHistoryPanel = observer(()=>{
         //eslint-disable-next-line
     }, [project, conversionJobId, project?.offset])
 
+    const topFolder = project?.folders[0];
+    const topFolderWebViewUrl = topFolder?.webView;
+    const webViewBaseUrl = topFolderWebViewUrl?.split('/folders/')[0];
+    const webViewUrl = webViewBaseUrl ?
+        `${webViewBaseUrl}/folders/${conversionJob?.folderId}/detail` :
+            `https://docs.b360.autodesk.com/projects/${conversionJob?.projectId.replace('b.', '')}/folders/${conversionJob?.folderId}/detail`;
+
     if(!project){
         return <Page404/>
     }
@@ -40,7 +47,7 @@ export const SingleHistoryPanel = observer(()=>{
         <div id={"historyPanel"}>
             <header style={{padding: '10px'}}>
                 <h2>{project?.name} > {conversionJob?.fileName}</h2>
-                <a style={{marginLeft: '50px'}} target={"_blank"} rel={"noreferrer"} href={`https://docs.b360.autodesk.com/projects/${conversionJob?.projectId.replace('b.', '')}/folders/${conversionJob?.folderId}/detail`}>
+                <a style={{marginLeft: '50px'}} target={"_blank"} rel={"noreferrer"} href={webViewUrl}>
                     <DefaultButton text={"Folder in BIM 360"}/>
                 </a>
                 <div className={"flexFiller"}/>

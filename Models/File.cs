@@ -9,5 +9,6 @@ namespace RevitToIfcScheduler.Models
         public string FileType { get; set; } = null;
         public string FolderId { get; set; } = null;
         public Boolean IsCompositeDesign { get; set; }
+        public string WebView { get; set; } = null;
     }
 }
