@@ -183,6 +183,16 @@ Related knowledge:
 - [What is IFC?](https://bimconnect.org/en/software/what-is-ifc/)
 - [About Revit and IFC](https://knowledge.autodesk.com/support/revit/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/Revit-DocumentPresent/files/GUID-6708CFD6-0AD7-461F-ADE8-6527423EC895-htm.html)
 - [What does an IFC Settings Set Contain?](https://knowledge.autodesk.com/support/revit/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/Revit-DocumentPresent/files/GUID-E029E3AD-1639-4446-A935-C9796BC34C95-htm.html)
+    - The name list of Revit built-in IFC export settings (since Revit 2017) of Forge Model Derivative service:
+        - IFC2x3 Coordination View 2.0
+        - IFC2x3 Coordination View
+        - IFC2x3 GSA Concept Design BIM 2010
+        - IFC2x3 Basic FM Handover View
+        - IFC2x2 Coordination View
+        - IFC2x2 Singapore BCA e-Plan Check
+        - IFC2x3 Extended FM Handover View
+        - IFC4 Reference View
+        - IFC4 Design Transfer View
 
 ### Tips and Tricks:
 
