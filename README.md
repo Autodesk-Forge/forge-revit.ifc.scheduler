@@ -27,7 +27,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 
 ## Limitations
 
-* This application will only work on Revit files that are uploaded directly to BIM 360 Docs / ACC Build, or published models from cloud worksharing.  
+* This application will only work on Revit files that are uploaded directly to BIM 360 Docs / Autodesk Docs, or published models from cloud worksharing.
 
 
 ## Setup
