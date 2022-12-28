@@ -7,6 +7,7 @@
 *.userosscache
 *.sln.docstates
 appsettings.*.json
+!appsettings.template.json
 .idea
 
 # User-specific files (MonoDevelop/Xamarin Studio)
