@@ -1,4 +1,7 @@
-﻿# Revit to IFC Scheduler
+# DEPRECATED
+This repository has been deprecated and migrated to [https://github.com/autodesk-platform-services/aps-bim360-assets-viewer](https://github.com/autodesk-platform-services/aps-revit.ifc.scheduler)
+ 
+ # Revit to IFC Scheduler
 
 ### Contents
 
